@@ -41,6 +41,8 @@ class Vimbot:
 
     def navigate(self, url):
         self.page.goto(url=url if "://" in url else "https://" + url, timeout=60000)
+        time.sleep(2)
+        self.page.screenshot(full_page=True, path=f"{url.split('/')[-1]}.png")
 
     def type(self, text):
         time.sleep(1)
