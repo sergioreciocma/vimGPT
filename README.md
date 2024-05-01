@@ -39,6 +39,11 @@ Run the script:
 python main.py
 ```
 
+For errors related to display, see:
+https://unix.stackexchange.com/questions/10465/how-do-i-start-xvfb-on-startup-on-debian
+https://stackoverflow.com/questions/74651860/python-pynput-error-failed-to-acquire-x-connection-bad-display-name-displ
+https://unix.stackexchange.com/questions/122094/error-because-display-environment-variable-is-not-properly-set
+
 ## Voice Mode
 Voice Mode: Engage with the browser using voice commands. Simply say your objective, and watch vimGPT perform actions in real-time.
 ```
