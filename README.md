@@ -36,7 +36,7 @@ playwright install
 
 Run the script:
 ```
-python main.py
+DISPLAY=":99" python main.py
 ```
 
 For errors related to display, see:
