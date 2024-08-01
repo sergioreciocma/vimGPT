@@ -4,7 +4,7 @@ from io import BytesIO
 from PIL import Image
 from playwright.sync_api import sync_playwright
 
-vimium_path = "./vimium-master"
+vimium_path = "vimium-master"
 
 
 class Vimbot:
@@ -14,8 +14,9 @@ class Vimbot:
             .start()
             .chromium.launch_persistent_context(
                 "",
-                headless=headless,
+                headless=False,
                 args=[
+                    "--headless=new",
                     f"--disable-extensions-except={vimium_path}",
                     f"--load-extension={vimium_path}",
                 ],
@@ -56,6 +57,8 @@ class Vimbot:
         # capture a screenshot with vim bindings on the screen
         self.page.keyboard.press("Escape")
         self.page.keyboard.type("f")
-
+        
+        self.page.wait_for_timeout(1000)
         screenshot = Image.open(BytesIO(self.page.screenshot())).convert("RGB")
+        self.page.screenshot(full_page=True, path="asdf.png")
         return screenshot

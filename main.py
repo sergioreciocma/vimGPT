@@ -14,7 +14,7 @@ def main(voice_mode):
     processor, model = vision.init_model(vision.MODEL_ID)
 
     print("Navigating to Google...")
-    driver.navigate("https://www.google.com")
+    driver.navigate("https://www.google.co.uk/")
 
     if voice_mode:
         print("Voice mode enabled. Listening for your command...")

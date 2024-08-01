@@ -48,7 +48,7 @@ def get_actions(screenshot, objective, processor, model):
     #encoded_screenshot = encode_and_resize(screenshot)
     
     generation_args = { 
-        "max_new_tokens": 500, 
+        "max_new_tokens": 100, 
         "temperature": 0.2, 
         "do_sample": True, 
     }
@@ -58,14 +58,26 @@ def get_actions(screenshot, objective, processor, model):
         You are a bot made to navigate the web.
         <|end|>\n
         <|user|>
-        You need to choose which action to take to help a user do this task: {objective}. Your options are navigate, type, click, and done. Navigate should take you to the specified URL. Type and click take strings where if you want to click on an object, return the string with the yellow character sequence you want to click on, and to type just a string with the message you want to type. For clicks, please only respond with the 1-2 letter sequence in the yellow box, and if there are multiple valid options choose the one you think a user would select. For typing, please return a click to click on the box along with a type with the message to write. When the page seems satisfactory, return done as a key with no value. You must respond in JSON only with no other fluff or bad things will happen. The JSON keys must ONLY be one of navigate, type, or click. Do not return the JSON inside a code block.
         <|image_1|>
+        You need to choose which actions to take to help a user do this task: {objective}.
+        
+        You need to choose amongst the following actions: TYPE, CLICK, DONE. 
+        CLICK: return the yellow character sequence on top of the element you want to click.
+        TYPE: please return CLICK with the yellow character sequence on top of the writing box, also return TYPE along with with the message to write.
+
+        For clicks, please only respond with the 1-2 letter sequence in the yellow box, and if there are multiple valid options choose the one you think a user would select.
+        For typing, please return a click to click on the box along with a type with the message to write.
+        When the page seems satisfactory, return done as a key with no value.
+        
+        You must respond in JSON only with no other fluff or bad things will happen. The JSON keys must ONLY be one of TYPE, or CLICK. Do not return the JSON inside a code block.
         <|end|>\n
         <|assistant|>
         """
 
     inputs = processor(
-        prompt, images=[screenshot], return_tensors="pt"
+        prompt.format(objective=objective),
+        images=[screenshot],
+        return_tensors="pt"
     ).to("cuda:0")
 
     generate_ids = model.generate(
@@ -80,8 +92,14 @@ def get_actions(screenshot, objective, processor, model):
         generate_ids_response,
         skip_special_tokens=True,
         clean_up_tokenization_spaces=False
-    )[0] 
+    )[0]
+    
+    try:
+        json_response = json.loads(response)
+    except json.JSONDecodeError:
+        print("Error: Invalid JSON response")
 
+    print(response)
     return response
 
 
