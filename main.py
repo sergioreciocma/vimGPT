@@ -6,10 +6,12 @@ from whisper_mic import WhisperMic
 import vision
 from vimbot import Vimbot
 
-
 def main(voice_mode):
     print("Initializing the Vimbot driver...")
     driver = Vimbot()
+    
+    print("Initialising LLM model...")
+    processor, model = vision.init_model(vision.MODEL_ID)
 
     print("Navigating to Google...")
     driver.navigate("https://www.google.com")
@@ -32,7 +34,7 @@ def main(voice_mode):
         screenshot = driver.capture()
 
         print("Getting actions for the given objective...")
-        action = vision.get_actions(screenshot, objective)
+        action = vision.get_actions(screenshot, objective, processor, model)
         print(f"JSON Response: {action}")
         if driver.perform_action(action):  # returns True if done
             break
