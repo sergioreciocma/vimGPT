@@ -11,7 +11,7 @@ def main(voice_mode):
     driver = Vimbot()
     
     print("Initialising LLM model...")
-    processor, model = vision.init_model(vision.MODEL_ID)
+    model = vision.init_model()
 
     print("Navigating to Google...")
     driver.navigate("https://www.google.co.uk/")
@@ -34,7 +34,7 @@ def main(voice_mode):
         screenshot = driver.capture()
 
         print("Getting actions for the given objective...")
-        action = vision.get_actions(screenshot, objective, processor, model)
+        action = vision.get_actions(screenshot, objective, model)
         print(f"JSON Response: {action}")
         if driver.perform_action(action):  # returns True if done
             break

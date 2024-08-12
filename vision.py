@@ -1,38 +1,23 @@
 import base64
+import boto3
 import json
 import os
-from io import BytesIO
 
+from io import BytesIO
 from dotenv import load_dotenv
 from PIL import Image
-import torch
 
-from transformers import (
-    AutoTokenizer,
-    AutoProcessor,
-    AutoModelForCausalLM,
-    BitsAndBytesConfig,
-    pipeline
-)
 
 load_dotenv()
-MODEL_ID = "microsoft/Phi-3-vision-128k-instruct"
 IMG_RES = 1080
 
 
-def init_model(model_id):
-    processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True) 
-
-    model = AutoModelForCausalLM.from_pretrained(
-        model_id,
-        torch_dtype=torch.bfloat16,
-        device_map="cuda",
-        trust_remote_code=True,
-        _attn_implementation="flash_attention_2"
+def init_model():
+    bedrock_runtime = boto3.client(
+        service_name="bedrock-runtime",
+        region_name="eu-west-2",
     )
-    
-    return processor, model
-
+    return bedrock_runtime
 
 # Function to encode the image
 def encode_and_resize(image):
@@ -44,63 +29,78 @@ def encode_and_resize(image):
     return encoded_image
 
 
-def get_actions(screenshot, objective, processor, model):
+def get_actions(screenshot, objective, model):
     #encoded_screenshot = encode_and_resize(screenshot)
     
-    generation_args = { 
-        "max_new_tokens": 100, 
-        "temperature": 0.2, 
-        "do_sample": True, 
-    }
-       
-    prompt = r"""
-        <|system|>
-        You are a bot made to navigate the web.
-        <|end|>\n
-        <|user|>
-        <|image_1|>
+    prompt = f"""
+        <goal>
         You need to choose which actions to take to help a user do this task: {objective}.
+        </goal>
         
-        You need to choose amongst the following actions: TYPE, CLICK, DONE. 
-        CLICK: return the yellow character sequence on top of the element you want to click.
-        TYPE: please return CLICK with the yellow character sequence on top of the writing box, also return TYPE along with with the message to write.
-
+        <formatting>
+        You must respond in JSON only with no other fluff or bad things will happen. The JSON keys must only be TYPE, CLICK or DONE. Do not return the JSON inside a code block.
+        </formatting>
+        
+        <instructions>
+        You need to choose amongst the following actions to reach your <goal>: TYPE, CLICK, DONE.
+        
+        Pay attention to the characters within the yellow boxes, as those will tell you where to click.
+        
+        If you want to CLICK something to reach your <goal>: return CLICK as the key, and the yellow character sequence on top of the element you want to click.
+        If you want to TYPE something to reach your <goal>: return CLICK as the key with the yellow character sequence on top of the writing box, and also return TYPE as key with the message to write.
+        If <goal> is DONE: return DONE as a key with no value.
+        
         For clicks, please only respond with the 1-2 letter sequence in the yellow box, and if there are multiple valid options choose the one you think a user would select.
         For typing, please return a click to click on the box along with a type with the message to write.
         When the page seems satisfactory, return done as a key with no value.
-        
-        You must respond in JSON only with no other fluff or bad things will happen. The JSON keys must ONLY be one of TYPE, or CLICK. Do not return the JSON inside a code block.
-        <|end|>\n
-        <|assistant|>
+        </instructions>
         """
+    
+    encoded_image = encode_and_resize(screenshot)
+    
+    prompt_config = {
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": 4096,
+            "system": "You are a bot made to navigate the web.",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": "image/jpeg",
+                                "data": encoded_image,
+                            },
+                        },
+                        {"type": "text", "text": prompt},
+                    ],
+                }
+            ],
+            "temperature": 0.5,
+        }
 
-    inputs = processor(
-        prompt.format(objective=objective),
-        images=[screenshot],
-        return_tensors="pt"
-    ).to("cuda:0")
+    body = json.dumps(prompt_config)
 
-    generate_ids = model.generate(
-        **inputs,
-        eos_token_id=[processor.tokenizer.eos_token_id, 32001, 32007], # included several stop tokens otherwise model doesn't stop responding until limit reached
-        **generation_args
-    ) 
+    modelId = "anthropic.claude-3-sonnet-20240229-v1:0"
+    accept = "application/json"
+    contentType = "application/json"
 
-    # remove input tokens 
-    generate_ids_response = generate_ids[:, inputs['input_ids'].shape[1]:]
-    response = processor.batch_decode(
-        generate_ids_response,
-        skip_special_tokens=True,
-        clean_up_tokenization_spaces=False
-    )[0]
+    response = model.invoke_model(
+        body=body, modelId=modelId, accept=accept, contentType=contentType
+    )
+
+    response_body = json.loads(response.get("body").read())
+
+    results = response_body.get("content")[0].get("text")
     
     try:
-        json_response = json.loads(response)
+        json_response = json.loads(results)
     except json.JSONDecodeError:
-        print("Error: Invalid JSON response")
+        print("Could not parse JSON")
 
-    print(response)
-    return response
+    return json_response
 
 
 if __name__ == "__main__":
