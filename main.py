@@ -28,10 +28,12 @@ def main(voice_mode):
     else:
         objective = input("Please enter your objective: ")
 
+    n = 0
     while True:
+        n += 1
         time.sleep(1)
         print("Capturing the screen...")
-        screenshot = driver.capture()
+        screenshot = driver.capture(n)
 
         print("Getting actions for the given objective...")
         action = vision.get_actions(screenshot, objective, model)

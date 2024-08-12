@@ -45,9 +45,10 @@ def get_actions(screenshot, objective, model):
         You need to choose amongst the following actions to reach your <goal>: TYPE, CLICK, DONE.
         
         Pay attention to the characters within the yellow boxes, as those will tell you where to click.
+        Please consider only the image provided, and go one step at a time.
         
-        If you want to CLICK something to reach your <goal>: return CLICK as the key, and the yellow character sequence on top of the element you want to click.
-        If you want to TYPE something to reach your <goal>: return CLICK as the key with the yellow character sequence on top of the writing box, and also return TYPE as key with the message to write.
+        If you want to CLICK something to reach your <goal>: return CLICK as the key, and the character sequence within the yellow box on top of the element you want to click.
+        If you want to TYPE something to reach your <goal>: return CLICK as the key with the character sequence within the yellow box on top of the writing box, and also return TYPE as key with the message to write.
         If <goal> is DONE: return DONE as a key with no value.
         
         For clicks, please only respond with the 1-2 letter sequence in the yellow box, and if there are multiple valid options choose the one you think a user would select.
@@ -61,7 +62,7 @@ def get_actions(screenshot, objective, model):
     prompt_config = {
             "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": 4096,
-            "system": "You are a bot made to navigate the web.",
+            "system": "You are a bot made to navigate the web. You can accept cookies in pages, perform Google searches, click on links and buttons and type into search bars.",
             "messages": [
                 {
                     "role": "user",

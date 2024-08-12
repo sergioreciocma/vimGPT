@@ -55,12 +55,12 @@ class Vimbot:
     def click(self, text):
         self.page.keyboard.type(text)
 
-    def capture(self):
+    def capture(self, name):
         # capture a screenshot with vim bindings on the screen
         self.page.keyboard.press("Escape")
         self.page.keyboard.type("f")
         
         self.page.wait_for_timeout(1000)
         screenshot = Image.open(BytesIO(self.page.screenshot())).convert("RGB")
-        self.page.screenshot(full_page=True, path="asdf.png")
+        self.page.screenshot(full_page=True, path=f"{name}.png")
         return screenshot
