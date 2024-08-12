@@ -14,11 +14,6 @@ Install `portaudio`:
 sudo apt install portaudio19-dev
 ```
 
-Install Python requirements:
-```
-pip install -r requirements.txt
-```
-
 Download Vimium locally and install other dependencies (have to load the extension manually when running Playwright):
 ```
 ./setup.sh
