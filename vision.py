@@ -44,8 +44,7 @@ def get_actions(screenshot, objective, model):
         <instructions>
         You need to choose amongst the following actions to reach your <goal>: TYPE, CLICK, DONE.
         
-        Pay attention to the characters within the yellow boxes, as those will tell you where to click.
-        Please consider only the image provided, and go one step at a time.
+        You will see a screenshot of a webpage. Examine the whole image first. Each clickable element or link will have a yellow box with one or two characters in it. You will need to refer to those characters to indicate what to do.
         
         If you want to CLICK something to reach your <goal>: return CLICK as the key, and the character sequence within the yellow box on top of the element you want to click.
         If you want to TYPE something to reach your <goal>: return CLICK as the key with the character sequence within the yellow box on top of the writing box, and also return TYPE as key with the message to write.
