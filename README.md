@@ -19,19 +19,9 @@ Install Python requirements:
 pip install -r requirements.txt
 ```
 
-Download Vimium locally (have to load the extension manually when running Playwright):
+Download Vimium locally and install other dependencies (have to load the extension manually when running Playwright):
 ```
 ./setup.sh
-```
-
-Install xvfb:
-```
-apt install xvfb
-```
-
-Install playwright:
-```
-playwright install
 ```
 
 Run the script:
